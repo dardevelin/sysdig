@@ -117,13 +117,16 @@ public:
 				lua_pushnumber(ls, (double)*(int64_t*)rawval);
 				return 1;
 			case PT_L4PROTO: // This can be resolved in the future
+			case PT_FLAGS8:
 			case PT_UINT8:
 				lua_pushnumber(ls, *(uint8_t*)rawval);
 				return 1;
 			case PT_PORT: // This can be resolved in the future
+			case PT_FLAGS16:
 			case PT_UINT16:
 				lua_pushnumber(ls, *(uint16_t*)rawval);
 				return 1;
+			case PT_FLAGS32:
 			case PT_UINT32:
 				lua_pushnumber(ls, *(uint32_t*)rawval);
 				return 1;
@@ -820,30 +823,10 @@ bool sinsp_chisel::openfile(string filename, OUT ifstream* is)
 
 	for(j = 0; j < g_chisel_dirs->size(); j++)
 	{
-		if(g_chisel_dirs->at(j).m_need_to_resolve)
+		is->open(string(g_chisel_dirs->at(j).m_dir) + filename);
+		if(is->is_open())
 		{
-#ifndef _WIN32
-			char resolved_path[PATH_MAX];
-
-			if(realpath((string(g_chisel_dirs->at(j).m_dir) + filename).c_str(), resolved_path) != NULL)
-			{
-				string rfilename(resolved_path);
-
-				is->open(rfilename);
-				if(is->is_open())
-				{
-					return true;
-				}
-			}
-#endif
-		}
-		else
-		{
-			is->open(string(g_chisel_dirs->at(j).m_dir) + filename);
-			if(is->is_open())
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 

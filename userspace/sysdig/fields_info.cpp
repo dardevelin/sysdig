@@ -183,6 +183,15 @@ const char* param_type_to_string(ppm_param_type pt)
 	case PT_DYN:
 		return "DYNAMIC";
 		break;
+	case PT_FLAGS8:
+		return "FLAGS8";
+		break;
+	case PT_FLAGS16:
+		return "FLAGS16";
+		break;
+	case PT_FLAGS32:
+		return "FLAGS32";
+		break;
 	default:
 		ASSERT(false);
 		return "<NA>";

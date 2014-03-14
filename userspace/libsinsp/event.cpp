@@ -154,6 +154,19 @@ sinsp_fdinfo_t* sinsp_evt::get_fd_info()
 	return m_fdinfo;
 }
 
+uint64_t sinsp_evt::get_fd_num()
+{
+	if(m_fdinfo)
+	{
+		return m_tinfo->m_lastevent_fd;
+	}
+	else
+	{
+		return sinsp_evt::INVALID_FD_NUM;
+	}
+}
+
+
 uint32_t sinsp_evt::get_num_params()
 {
 	if(!m_params_loaded)
@@ -266,7 +279,7 @@ uint32_t binary_buffer_to_hex_string(char *dst, char *src, uint32_t dstlen, uint
 		row[k] = 0;
 
 		row_len = strlen(row);
-		if(l + row_len >= dstlen)
+		if(l + row_len >= dstlen - 1)
 		{
 			break;
 		}
@@ -274,6 +287,7 @@ uint32_t binary_buffer_to_hex_string(char *dst, char *src, uint32_t dstlen, uint
 		l += row_len;
 	}
 
+	dst[l++] = '\n';
 	return l;
 }
 
@@ -455,10 +469,38 @@ const char* sinsp_evt::get_param_as_str(uint32_t id, OUT const char** resolved_s
 			if(fdinfo)
 			{
 				char tch = fdinfo->get_typechar();
+				char ipprotoch = 0;
+				
+				if(fdinfo->m_type == SCAP_FD_IPV4_SOCK ||
+					fdinfo->m_type == SCAP_FD_IPV6_SOCK ||
+					fdinfo->m_type == SCAP_FD_IPV4_SERVSOCK ||
+					fdinfo->m_type == SCAP_FD_IPV6_SERVSOCK)
+				{
+					scap_l4_proto l4p = fdinfo->get_l4proto();
 
-				char typestr[2] =
+					switch(l4p)
+					{
+					case SCAP_L4_TCP:
+						ipprotoch = 't';
+						break;
+					case SCAP_L4_UDP:
+						ipprotoch = 'u';
+						break;
+					case SCAP_L4_ICMP:
+						ipprotoch = 'i';
+						break;
+					case SCAP_L4_RAW:
+						ipprotoch = 'r';
+						break;
+					default:
+						break;
+					}
+				}
+
+				char typestr[3] =
 				{
 					(fmt == PF_SIMPLE)?(char)0:tch,
+					ipprotoch,
 					0
 				};
 
@@ -932,6 +974,54 @@ const char* sinsp_evt::get_param_as_str(uint32_t id, OUT const char** resolved_s
 						((double)val) / 1000000000);
 		}
 		break;
+	case PT_FLAGS8:
+	case PT_FLAGS16:
+	case PT_FLAGS32:
+		{
+			uint32_t val = *(uint32_t *)param->m_val & (((uint64_t)1 << param->m_len * 8) - 1);
+			snprintf(&m_paramstr_storage[0],
+				     m_paramstr_storage.size(),
+				     "%" PRIu32, val);
+
+			const struct ppm_name_value *flags = m_info->params[id].symbols;
+			const char *separator = "";
+			uint32_t initial_val = val;
+			uint32_t j = 0;
+
+			while(flags != NULL && flags->name != NULL && flags->value != initial_val)
+			{
+				if((val & flags->value) == flags->value && val != 0)
+				{
+					if(m_resolved_paramstr_storage.size() < j + strlen(separator) + strlen(flags->name))
+					{
+						m_resolved_paramstr_storage.resize(m_resolved_paramstr_storage.size() * 2);
+					}
+
+					j += snprintf(&m_resolved_paramstr_storage[j],
+								  m_resolved_paramstr_storage.size(),
+							 	  "%s%s",
+							 	  separator,
+							 	  flags->name);
+
+					separator = "|";
+					// We remove current flags value to avoid duplicate flags e.g. PPM_O_RDWR, PPM_O_RDONLY, PPM_O_WRONLY
+					val &= ~flags->value;
+				}
+
+				flags++;
+			}
+
+			if(flags != NULL && flags->name != NULL)
+			{
+				j += snprintf(&m_resolved_paramstr_storage[j],
+							  m_resolved_paramstr_storage.size(),
+							  "%s%s",
+							  separator,
+							  flags->name);
+			}
+
+			break;
+		}
 	case PT_ABSTIME:
 		//
 		// XXX not implemented yet
