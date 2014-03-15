@@ -266,6 +266,8 @@ const char* sinsp_utils::errno_to_str(int32_t code)
 		return "EADDRINUSE";
 	case SE_EPROTOTYPE:
 		return "EPROTOTYPE";
+	case SE_ENOPROTOOPT:
+		return "ENOPROTOOPT";
 	case SE_EALREADY:
 		return "EALREADY";
 	default:
