@@ -85,6 +85,7 @@ struct ppm_event_entry
 };
 
 extern const struct ppm_event_entry g_ppm_events[];
+extern const ppm_param_type sockopt_optnames_info[];
 
 //
 // parse_readv_writev_bufs flags
