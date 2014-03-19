@@ -354,12 +354,49 @@ uint32_t binary_buffer_to_string(char *dst, char *src, uint32_t dstlen, uint32_t
 	return k;
 }
 
-uint32_t dynamic_buffer_to_string(char *dst, char *src, uint32_t dstlen, uint32_t srclen)
+uint32_t dynamic_buffer_to_string(char *dst,
+									char *src,
+									uint32_t dstlen,
+									uint32_t srclen,
+									char *resolved,
+									uint32_t resolved_len)
 {
+	uint32_t uint_val;
 	uint32_t j = 0;
+	int32_t int_val;
+	char *payload = &src[1];
 
 	switch(src[0])
 	{
+		case PT_SOCKFAMILY:
+			{
+				uint_val = *(uint8_t*)payload;
+				j = snprintf(dst, dstlen, "%" PRIu32, uint_val);
+
+				const struct ppm_name_value *flags = socket_families;
+				while(flags != NULL && flags->name != NULL && flags->value != uint_val)
+				{
+					flags++;
+				}
+
+				if(flags != NULL && flags->name != NULL)
+				{
+					strncpy(resolved, flags->name, resolved_len);
+				}
+			}
+			break;
+		case PT_CHARBUF:
+			strncpy(dst, (char*)payload, dstlen);
+			j = srclen - 1;
+			break;
+		case PT_UINT32:
+			uint_val = *(uint32_t*)payload;
+			j = snprintf(dst, dstlen, "%" PRIu32, uint_val);
+			break;
+		case PT_INT32:
+			int_val = *(int32_t*)payload;
+			j = snprintf(dst, dstlen, "%" PRId32, int_val);
+			break;
 		case PT_BOOL:
 			if((uint32_t)src[1] != 0)
 			{
@@ -1059,7 +1096,9 @@ const char* sinsp_evt::get_param_as_str(uint32_t id, OUT const char** resolved_s
 		dynamic_buffer_to_string(&m_paramstr_storage[0],
 			param->m_val,
 			m_paramstr_storage.size() - 1,
-			param->m_len);
+			param->m_len,
+			&m_resolved_paramstr_storage[0],
+			m_resolved_paramstr_storage.size());
 		break;
 	case PT_ABSTIME:
 		//

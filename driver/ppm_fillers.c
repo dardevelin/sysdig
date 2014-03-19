@@ -1236,18 +1236,78 @@ static uint32_t sockopt_socket_optname_to_scap(unsigned long val)
 			return PPM_SO_DEBUG;
 		case SO_REUSEADDR:
 			return PPM_SO_REUSEADDR;
+		case SO_REUSEPORT:
+			return PPM_SO_REUSEPORT;
 		case SO_TYPE:
 			return PPM_SO_TYPE;
+		case SO_PROTOCOL:
+			return PPM_SO_PROTOCOL;
+		case SO_DOMAIN:
+			return PPM_SO_DOMAIN;
 		case SO_ERROR:
 			return PPM_SO_ERROR;
 		case SO_DONTROUTE:
 			return PPM_SO_DONTROUTE;
 		case SO_BROADCAST:
 			return PPM_SO_BROADCAST;
+		case SO_KEEPALIVE:
+			return PPM_SO_KEEPALIVE;
 		case SO_SNDBUF:
 			return PPM_SO_SNDBUF;
 		case SO_RCVBUF:
 			return PPM_SO_RCVBUF;
+		default:
+			return PPM_SO_UNKNOWN;
+			break;
+	}
+}
+
+static uint32_t sockopt_ip_optname_to_scap(unsigned long val)
+{
+	switch(val)
+	{
+		case IP_PKTINFO:
+			return PPM_IP_PKTINFO;
+		case IP_RECVTTL:
+			return PPM_IP_RECVTTL;
+		case IP_RECVTOS:
+			return PPM_IP_RECVTOS;
+		case IP_RECVOPTS:
+			return PPM_IP_RECVOPTS;
+		case IP_RETOPTS:
+			return PPM_IP_RETOPTS;
+		case IP_TOS:
+			return PPM_IP_TOS;
+		case IP_TTL:
+			return PPM_IP_TTL;
+		case IP_NODEFRAG:
+			return PPM_IP_NODEFRAG;
+		case IP_MTU_DISCOVER:
+			return PPM_IP_MTU_DISCOVER;
+		default:
+			return PPM_SO_UNKNOWN;
+			break;
+	}
+}
+
+static uint32_t sockopt_tcp_optname_to_scap(unsigned long val)
+{
+	switch(val)
+	{
+		case TCP_CONGESTION:
+			return PPM_TCP_CONGESTION;
+		case TCP_MAXSEG:
+			return PPM_TCP_MAXSEG;
+		case TCP_NODELAY:
+			return PPM_TCP_NODELAY;
+		case TCP_THIN_LINEAR_TIMEOUTS:
+			return PPM_TCP_THIN_LINEAR_TIMEOUTS;
+		case TCP_THIN_DUPACK:
+			return PPM_TCP_THIN_DUPACK;
+		case TCP_CORK:
+			return PPM_TCP_CORK;
+		case TCP_KEEPIDLE:
+			return PPM_TCP_KEEPIDLE;
 		default:
 			return PPM_SO_UNKNOWN;
 			break;
@@ -1259,9 +1319,15 @@ static inline uint8_t sockopt_level_to_scap(unsigned long val,
 {
 	switch(val)
 	{
+		case SOL_IP:
+			*parse_opt = sockopt_ip_optname_to_scap;
+			return PPM_SOL_IP;
 		case SOL_SOCKET:
 			*parse_opt = sockopt_socket_optname_to_scap;
 			return PPM_SOL_SOCKET;
+		case SOL_TCP:
+			*parse_opt = sockopt_tcp_optname_to_scap;
+			return PPM_SOL_TCP;
 		default:
 			*parse_opt = sockopt_default_optname_to_scap;
 			return PPM_SOL_UNKNOWN;
@@ -1282,12 +1348,31 @@ static inline uint16_t sockopt_optval_parse(uint32_t optname,
 		return 0;
 	}
 
+	*(targetbuf) = optval_info;
 	switch(optval_info)
 	{
+		case PT_SOCKFAMILY:
+			*(uint8_t*)(targetbuf + 1) = socket_family_to_scap(*(uint8_t*)optval);
+			size = 1 + sizeof(uint8_t);
+			break;
+		case PT_CHARBUF:
+			{
+				uint32_t len = min((uint32_t)targetbuf_size, (uint32_t)optlen);
+				strncpy(targetbuf + 1, (char *)optval, len);
+				size = 1 + len;
+			}
+			break;
+		case PT_INT32:
+			*(int32_t*)(targetbuf + 1) = *(int32_t*)optval;
+			size = 1 + sizeof(int32_t);
+			break;
+		case PT_UINT32:
+			*(uint32_t*)(targetbuf + 1) = *(uint32_t*)optval;
+			size = 1 + sizeof(uint32_t);
+			break;
 		case PT_BOOL:
-			*(targetbuf) = optval_info;
-			*(targetbuf + 1) = *(char *)optval;
-			size = 2;
+			*(uint8_t*)(targetbuf + 1) = *(uint8_t*)optval;
+			size = 1 + sizeof(uint8_t);
 			break;
 		default:
 			size = 0;

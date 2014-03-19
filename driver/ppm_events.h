@@ -97,6 +97,7 @@ extern const ppm_param_type sockopt_optnames_info[];
 //
 // Functions
 //
+inline uint8_t socket_family_to_scap(uint8_t family);
 int32_t f_sys_autofill(struct event_filler_arguments* args, const struct ppm_event_entry* evinfo);
 int32_t val_to_ring(struct event_filler_arguments* args, uint64_t val, uint16_t val_len, bool fromuser);
 inline int32_t add_sentinel(struct event_filler_arguments* args);

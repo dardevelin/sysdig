@@ -435,7 +435,7 @@ char* npm_getcwd(char *buf, unsigned long bufsize)
 	return res;
 }
 
-static inline uint8_t socket_family_to_scap(uint8_t family)
+inline uint8_t socket_family_to_scap(uint8_t family)
 {
 	if(family == AF_INET)
 	{
@@ -1191,7 +1191,31 @@ int32_t f_sys_autofill(struct event_filler_arguments* args, const struct ppm_eve
 
 const ppm_param_type sockopt_optnames_info[] =
 {
-	[SO_DEBUG] = PT_BOOL,
-	[SO_DONTROUTE] = PT_BOOL,
-	[SO_REUSEADDR] = PT_BOOL,
+	[PPM_SO_DEBUG] = PT_BOOL,
+	[PPM_SO_DONTROUTE] = PT_BOOL,
+	[PPM_SO_BROADCAST] = PT_BOOL,
+	[PPM_SO_SNDBUF] = PT_INT32,
+	[PPM_SO_RCVBUF] = PT_INT32,
+	[PPM_SO_REUSEADDR] = PT_BOOL,
+	[PPM_SO_REUSEPORT] = PT_BOOL,
+	[PPM_SO_KEEPALIVE] = PT_BOOL,
+	[PPM_SO_TYPE] = PT_UINT32,
+	[PPM_SO_PROTOCOL] = PT_UINT32,
+	[PPM_SO_DOMAIN] = PT_SOCKFAMILY,
+	[PPM_SO_ERROR] = PT_INT32,
+	[PPM_IP_PKTINFO] = PT_BOOL,
+	[PPM_IP_RECVTTL] = PT_BOOL,
+	[PPM_IP_RECVTOS] = PT_BOOL,
+	[PPM_IP_RECVOPTS] = PT_BOOL,
+	[PPM_IP_RETOPTS] = PT_BOOL,
+	[PPM_IP_TTL] = PT_INT32,
+	[PPM_IP_NODEFRAG] = PT_BOOL,
+	[PPM_IP_MTU_DISCOVER] = PT_UINT32,
+	[PPM_TCP_CONGESTION] = PT_CHARBUF,
+	[PPM_TCP_MAXSEG] = PT_UINT32,
+	[PPM_TCP_NODELAY] = PT_BOOL,
+	[PPM_TCP_THIN_LINEAR_TIMEOUTS] = PT_BOOL,
+	[PPM_TCP_THIN_DUPACK] = PT_BOOL,
+	[PPM_TCP_CORK] = PT_BOOL,
+	[PPM_TCP_KEEPIDLE] = PT_UINT32,
 };
