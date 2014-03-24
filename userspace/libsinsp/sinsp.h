@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -422,6 +422,11 @@ public:
 	   buffer arguments.
 	*/
 	sinsp_evt::param_fmt get_buffer_format();
+
+	/*!
+	  \brief Returns true if the current capture is live.
+	*/
+	bool is_live();
 
 	//
 	// Misc internal stuff 

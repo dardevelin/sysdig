@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -61,6 +61,13 @@ public:
 class chisel_desc
 {
 public:
+	void reset()
+	{
+		m_name = "";
+		m_description = "";
+		m_args.clear();
+	}
+
 	string m_name;
 	string m_description;
 	vector<chiselarg_desc> m_args;
@@ -97,10 +104,12 @@ public:
 	void set_args(vector<string>* argvals);
 	bool run(sinsp_evt* evt);
 	void on_init();
+	void on_capture_start();
 	void on_capture_end();
 
 private:
 	bool openfile(string filename, OUT ifstream* is);
+	void free_lua_chisel();
 
 	sinsp* m_inspector;
 	string m_description;
@@ -116,6 +125,7 @@ private:
 	vector<sinsp_filter_check*> m_allocated_fltchecks;
 	char m_lua_fld_storage[1024];
 	chiselinfo* m_lua_cinfo;
+	string m_new_chisel_to_exec;
 
 	friend class lua_cbacks;
 };

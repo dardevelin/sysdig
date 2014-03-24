@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -314,9 +314,12 @@ public:
 		TYPE_ARGRAW = 18,
 		TYPE_RESSTR = 19,
 		TYPE_RESRAW = 20,
-		TYPE_ISIO = 21,
-		TYPE_ISIO_READ = 22,
-		TYPE_ISIO_WRITE = 23,
+		TYPE_FAILED = 21,
+		TYPE_ISIO = 22,
+		TYPE_ISIO_READ = 23,
+		TYPE_ISIO_WRITE = 24,
+		TYPE_ISWAIT = 25,
+		TYPE_COUNT = 26,
 	};
 
 	sinsp_filter_check_event();

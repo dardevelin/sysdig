@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -99,6 +99,7 @@ public:
 		PF_SIMPLE,	///< Reduced output, e.g. not type character for FDs
 		PF_HEX,		///< Hexadecimal output
 		PF_HEXASCII,///< Hexadecimal + ASCII output
+		PF_EOLS,	///< Normal + end of lines
 	};
 
 	/*!

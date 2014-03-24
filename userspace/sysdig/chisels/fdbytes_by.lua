@@ -16,29 +16,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 -- Chisel description
-description = "Shows the top TCP/UDP server ports in terms of total (in+out) bandwidth.";
-short_description = "top server ports by total bytes";
-category = "net";
+description = "Gropus FD activity based on the given filter field, and returns the key that generated the most input+output bytes. For example, this script can be used to list the processes or TCP ports that generated most traffic."
+short_description = "FD bytes group by"
+category = "IO"
 
 -- Chisel argument list
-args = {}
+args = 
+{
+	{
+		name = "key", 
+		description = "the filter field used for grouping", 
+		argtype = "string"
+	},
+}
 
 -- The number of items to show
-TOP_NUMBER = 100
+TOP_NUMBER = 0
+key_fld = ""
 
 -- Argument notification callback
 function on_set_arg(name, val)
+	if name == "key" then
+		key_fld = val
+		return true
+	end
+
 	return false
 end
 
 -- Initialization callback
 function on_init()
-	chisel.exec("table_generator", 
-		"fd.sport",
-		"Server Port",
+	chisel.exec("table_generator",
+		key_fld,
+		key_fld,
 		"evt.rawarg.res",
 		"Bytes",
-		"(fd.type=ipv4 or fd.type=ipv6) and evt.is_io=true", 
+		"evt.is_io=true", 
 		"" .. TOP_NUMBER,
 		"bytes")
 	return true

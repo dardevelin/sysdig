@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -224,6 +224,7 @@ uint32_t binary_buffer_to_hex_string(char *dst, char *src, uint32_t dstlen, uint
 	uint32_t row_len;
 	char row[128];
 	char *ptr;
+	bool truncated = false;
 
 	for(j = 0; j < srclen; j += 8 * sizeof(uint16_t))
 	{
@@ -281,6 +282,7 @@ uint32_t binary_buffer_to_hex_string(char *dst, char *src, uint32_t dstlen, uint
 		row_len = strlen(row);
 		if(l + row_len >= dstlen - 1)
 		{
+			truncated = true;
 			break;
 		}
 		strcpy(dst + l, row);
@@ -288,12 +290,116 @@ uint32_t binary_buffer_to_hex_string(char *dst, char *src, uint32_t dstlen, uint
 	}
 
 	dst[l++] = '\n';
-	return l;
+
+	if(truncated)
+	{
+		return dstlen;
+	}
+	else
+	{
+		return l;
+	}
+}
+
+uint32_t binary_buffer_to_asciionly_string(char *dst, char *src, uint32_t dstlen, uint32_t srclen, sinsp_evt::param_fmt fmt)
+{
+	uint32_t j;
+	uint32_t k = 0;
+
+	dst[k++] = '\n';
+
+	for(j = 0; j < srclen; j++)
+	{
+		//
+		// Make sure there's enough space in the target buffer.
+		// Note that we reserve two bytes, because some characters are expanded
+		// when copied.
+		//
+		if(k >= dstlen - 1)
+		{
+			dst[k - 1] = 0;
+			return dstlen;
+		}
+
+		if(isprint((int)(uint8_t)src[j]))
+		{
+			switch(src[j])
+			{
+			case '"':
+			case '\\':
+				dst[k++] = '\\';
+				break;
+			default:
+				break;
+			}
+
+			dst[k] = src[j];
+			k++;
+		}
+		else if(src[j] == '\r')
+		{
+			dst[k] = '\n';
+			k++;
+		}
+		else if(src[j] == '\n')
+		{
+			if(j > 0 && src[j - 1] != '\r')
+			{
+				dst[k] = src[j];
+				k++;
+			}
+		}
+
+	}
+
+	return k;
+}
+
+uint32_t binary_buffer_to_string_dots(char *dst, char *src, uint32_t dstlen, uint32_t srclen, sinsp_evt::param_fmt fmt)
+{
+	uint32_t j;
+	uint32_t k = 0;
+
+	for(j = 0; j < srclen; j++)
+	{
+		//
+		// Make sure there's enough space in the target buffer.
+		// Note that we reserve two bytes, because some characters are expanded
+		// when copied.
+		//
+		if(k >= dstlen - 1)
+		{
+			dst[k - 1] = 0;
+			return dstlen;
+		}
+
+		if(isprint((int)(uint8_t)src[j]))
+		{
+			switch(src[j])
+			{
+			case '"':
+			case '\\':
+				dst[k++] = '\\';
+				break;
+			default:
+				break;
+			}
+
+			dst[k] = src[j];
+		}
+		else
+		{
+			dst[k] = '.';
+		}
+
+		k++;
+	}
+
+	return k;
 }
 
 uint32_t binary_buffer_to_string(char *dst, char *src, uint32_t dstlen, uint32_t srclen, sinsp_evt::param_fmt fmt)
 {
-	uint32_t j;
 	uint32_t k = 0;
 
 	if(dstlen == 0)
@@ -312,42 +418,13 @@ uint32_t binary_buffer_to_string(char *dst, char *src, uint32_t dstlen, uint32_t
 	{
 		k = binary_buffer_to_hex_string(dst, src, dstlen, srclen, fmt);
 	}
+	else if(fmt == sinsp_evt::PF_EOLS)
+	{
+		k = binary_buffer_to_asciionly_string(dst, src, dstlen, srclen, fmt);
+	}
 	else
 	{
-		for(j = 0; j < srclen; j++)
-		{
-			//
-			// Make sure there's enough space in the target buffer.
-			// Note that we reserve two bytes, because some characters are expanded
-			// when copied.
-			//
-			if(k >= dstlen - 1)
-			{
-				dst[k - 1] = 0;
-				return k - 1;
-			}
-
-			if(isprint((int)(uint8_t)src[j]))
-			{
-				switch(src[j])
-				{
-				case '"':
-				case '\\':
-					dst[k++] = '\\';
-					break;
-				default:
-					break;
-				}
-
-				dst[k] = src[j];
-			}
-			else
-			{
-				dst[k] = '.';
-			}
-
-			k++;
-		}
+		k = binary_buffer_to_string_dots(dst, src, dstlen, srclen, fmt);
 	}
 
 	dst[k] = 0;
@@ -689,16 +766,24 @@ const char* sinsp_evt::get_param_as_str(uint32_t id, OUT const char** resolved_s
 		            m_paramstr_storage[cres + 1] = '"';
 		            m_paramstr_storage[cres + 2] = 0;
 		*/
-		if(binary_buffer_to_string(&m_paramstr_storage[0],
-			param->m_val,
-			m_paramstr_storage.size() - 1,
-			param->m_len,
-			fmt) == m_paramstr_storage.size())
+		while(true)
 		{
-			//
-			// The buffer didn't fit, expand it for future use
-			//
-			m_paramstr_storage.resize(m_paramstr_storage.size() * 2);
+			uint32_t blen = binary_buffer_to_string(&m_paramstr_storage[0],
+				param->m_val,
+				m_paramstr_storage.size() - 1,
+				param->m_len,
+				fmt);
+
+			if(blen >= m_paramstr_storage.size() - 1)
+			{
+				//
+				// The buffer didn't fit, expand it and try again
+				//
+				m_paramstr_storage.resize(m_paramstr_storage.size() * 2);
+				continue;
+			}
+
+			break;
 		}
 	}
 	break;

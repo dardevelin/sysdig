@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -114,12 +114,14 @@ static void usage()
 "                    h for human-readable string, a for abosulte timestamp from\n" 
 "                    epoch, r for relative time from the beginning of the\n" 
 "                    capture, and d for delta between event enter and exit.\n" 
-" -v, --verbose      Verbose output\n"
+" -T, --print-text   Print only the text portion of data buffers, and echo\n" 
+"                    EOLS. This is useful to only display human-readable data.\n"
+" -v, --verbose      Verbose output.\n"
 " -w <writefile>, --write=<writefile>\n"
 "                    Write the captured events to <writefile>.\n"
-" -x, --hex-format   Print buffers in hex\n"
-" -X, --hex-ascii-format\n"
-"                    Print buffers in hex and ASCII\n"
+" -x, --print-hex   Print data buffers in hex.\n"
+" -X, --print-hex-ascii\n"
+"                    Print data buffers in hex and ASCII.\n"
 "\n"
 "Output format:\n\n"
 "By default, sysdig prints the information for each captured event on a single\n"
@@ -401,11 +403,12 @@ int main(int argc, char **argv)
         {"readfile", required_argument, 0, 'r' },
         {"snaplen", required_argument, 0, 's' },
         {"summary", no_argument, 0, 'S' },
+        {"print-text", no_argument, 0, 'T' },
         {"timetype", required_argument, 0, 't' },
         {"verbose", no_argument, 0, 'v' },
         {"writefile", required_argument, 0, 'w' },
-        {"hex", no_argument, 0, 'x'},
-        {"hex-ascii", no_argument, 0, 'X'},
+        {"print-hex", no_argument, 0, 'x'},
+        {"print-hex-ascii", no_argument, 0, 'X'},
         {0, 0, 0, 0}
     };
 
@@ -422,7 +425,7 @@ int main(int argc, char **argv)
 		//
 		// Parse the args
 		//
-		while((op = getopt_long(argc, argv, "ac:dhjlLn:p:qr:Ss:t:vw:xX", long_options, &long_index)) != -1)
+		while((op = getopt_long(argc, argv, "ac:dhjlLn:p:qr:Ss:Tt:vw:xX", long_options, &long_index)) != -1)
 		{
 			switch(op)
 			{
@@ -575,6 +578,16 @@ int main(int argc, char **argv)
 			case 's':
 				snaplen = atoi(optarg);
 				break;
+			case 'T':
+				if(event_buffer_format != sinsp_evt::PF_NORMAL)
+				{
+					fprintf(stderr, "you cannot specify more than one output format\n");
+					delete inspector;
+					return EXIT_SUCCESS;
+				}
+
+				event_buffer_format = sinsp_evt::PF_EOLS;
+				break;
 			case 't':
 				{
 					string tms(optarg);
@@ -605,9 +618,23 @@ int main(int argc, char **argv)
 				quiet = true;
 				break;
 			case 'x':
+				if(event_buffer_format != sinsp_evt::PF_NORMAL)
+				{
+					fprintf(stderr, "you cannot specify more than one output format\n");
+					delete inspector;
+					return EXIT_SUCCESS;
+				}
+
 				event_buffer_format = sinsp_evt::PF_HEX;
 				break;
 			case 'X':
+				if(event_buffer_format != sinsp_evt::PF_NORMAL)
+				{
+					fprintf(stderr, "you cannot specify more than one output format\n");
+					delete inspector;
+					return EXIT_SUCCESS;
+				}
+
 				event_buffer_format = sinsp_evt::PF_HEXASCII;
 				break;
 			default:
@@ -780,6 +807,14 @@ int main(int argc, char **argv)
 
 		duration = ((double)clock()) / CLOCKS_PER_SEC;
 			
+		//
+		// Notify the chisels that the capture is starting
+		//
+		for(uint32_t j = 0; j < chisels.size(); j++)
+		{
+			chisels[j]->on_capture_start();
+		}
+
 		cinfo = do_inspect(inspector, 
 			cnt, 
 			quiet, 

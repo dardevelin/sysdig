@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -520,7 +520,7 @@ static int32_t f_sys_read_x(struct event_filler_arguments* args)
 	// Determine the snaplen by checking the fd type.
 	// (note: not implemeted yet)
 	//
-	snaplen = g_snaplen;	
+	snaplen = g_snaplen;
 #if 0
 	{
 		int fd;
@@ -1227,7 +1227,14 @@ static int32_t f_sys_accept_x(struct event_filler_arguments* args)
 	}
 	else
 	{
-		val = (unsigned long)sock->sk->sk_ack_backlog * 100 / sock->sk->sk_max_ack_backlog;
+		if(sock->sk->sk_max_ack_backlog == 0)
+		{
+			val = 0;
+		}
+		else
+		{
+			val = (unsigned long)sock->sk->sk_ack_backlog * 100 / sock->sk->sk_max_ack_backlog;
+		}
 		sockfd_put(sock);
 	}
 

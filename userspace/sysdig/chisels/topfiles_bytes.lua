@@ -16,15 +16,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 -- Chisel description
-description = "Shows the top TCP/UDP server ports in terms of total (in+out) bandwidth.";
-short_description = "top server ports by total bytes";
-category = "net";
+description = "Shows the top files in terms of disk usage."
+short_description = "top files by total bytes"
+category = "IO"
 
 -- Chisel argument list
 args = {}
 
 -- The number of items to show
-TOP_NUMBER = 100
+TOP_NUMBER = 10
 
 -- Argument notification callback
 function on_set_arg(name, val)
@@ -34,11 +34,11 @@ end
 -- Initialization callback
 function on_init()
 	chisel.exec("table_generator", 
-		"fd.sport",
-		"Server Port",
+		"fd.name",
+		"Filename",
 		"evt.rawarg.res",
 		"Bytes",
-		"(fd.type=ipv4 or fd.type=ipv6) and evt.is_io=true", 
+		"fd.type=file and evt.is_io=true", 
 		"" .. TOP_NUMBER,
 		"bytes")
 	return true

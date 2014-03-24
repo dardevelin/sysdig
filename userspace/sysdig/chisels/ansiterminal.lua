@@ -3,27 +3,7 @@ local tostring = tostring
 local setmetatable = setmetatable
 local schar = string.char
 
-module 'ansicolors'
-
-local colormt = {}
-
-function colormt:__tostring()
-    return self.value
-end
-
-function colormt:__concat(other)
-    return tostring(self) .. tostring(other)
-end
-
-function colormt:__call(s)
-    return self .. s .. _M.reset
-end
-
-colormt.__metatable = {}
-
-local function makecolor(value)
-    return setmetatable({ value = schar(27) .. '[' .. tostring(value) .. 'm' }, colormt)
-end
+local ansiterminal = {}
 
 local colors = {
     -- attributes
@@ -57,6 +37,32 @@ local colors = {
     onwhite = 47,
 }
 
-for c, v in pairs(colors) do
-    _M[c] = makecolor(v)
+local function makecolor(name, value)
+	ansiterminal[name] = schar(27) .. '[' .. tostring(value) .. 'm'
 end
+
+for c, v in pairs(colors) do
+    makecolor(c, v)
+end
+
+function ansiterminal.clearscreen()
+    io.write(schar(27) .. '[' .. "2J")
+end
+
+function ansiterminal.goto(x, y)
+    io.write(schar(27) .. '[' .. tostring(x) .. ";" .. tostring(y) .. 'H')
+end
+
+function ansiterminal.clearline()
+    io.write(schar(27) .. '[' .. "2K")
+end
+
+function ansiterminal.hidecursor()
+    io.write(schar(27) .. '[' .. "?25l")
+end
+
+function ansiterminal.showcursor()
+    io.write(schar(27) .. '[' .. "?25h")
+end
+
+return ansiterminal

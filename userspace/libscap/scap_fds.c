@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -655,7 +655,6 @@ int32_t scap_fd_handle_socket(scap_t *handle, char *fname, scap_threadinfo *tinf
 		fdi->type = SCAP_FD_UNSUPPORTED;
 		return scap_add_fd_to_proc_table(handle, tinfo, fdi);
 	}
-
 
 	//
 	// Lookup ino in the list of sockets

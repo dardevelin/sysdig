@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -753,6 +753,7 @@ typedef enum ppm_event_flags
 	EF_WRITES_TO_FD = (1 << 4), // This event writes data to an FD.
 	EF_MODIFIES_STATE = (1 << 5), // This event causes the machine state to change and should not be dropped by the filtering engine.
 	EF_UNUSED = (1 << 6), // This event is no
+	EF_WAITS = (1 << 7), // This event reads data from an FD.
 }ppm_event_flags;
 
 //

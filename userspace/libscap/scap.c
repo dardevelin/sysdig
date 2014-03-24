@@ -5,7 +5,7 @@ This file is part of sysdig.
 
 sysdig is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
+the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
 sysdig is distributed in the hope that it will be useful,
@@ -909,7 +909,7 @@ int32_t scap_set_snaplen(scap_t* handle, uint32_t snaplen)
 	//
 	if(handle->m_file)
 	{
-		snprintf(handle->m_lasterr,	SCAP_LASTERR_SIZE, "dropping mode not supported on offline captures");
+		snprintf(handle->m_lasterr,	SCAP_LASTERR_SIZE, "setting snaplen not supported on offline captures");
 		return SCAP_FAILURE;
 	}
 
@@ -928,6 +928,24 @@ int32_t scap_set_snaplen(scap_t* handle, uint32_t snaplen)
 		snprintf(handle->m_lasterr,	SCAP_LASTERR_SIZE, "scap_set_snaplen failed");
 		ASSERT(false);
 		return SCAP_FAILURE;
+	}
+
+	{
+		uint32_t j;
+
+		//
+		// Force a flush of the read buffers, so we don't capture events with the old snaplen
+		//
+		for(j = 0; j < handle->m_ndevs; j++)
+		{
+			scap_readbuf(handle,
+               j,
+               false,
+               &handle->m_devs[j].m_sn_next_event,
+               &handle->m_devs[j].m_sn_len);
+
+			handle->m_devs[j].m_sn_len = 0;
+		}
 	}
 
 	return SCAP_SUCCESS;
