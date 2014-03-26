@@ -6,9 +6,9 @@
   "description": "sysdig role",
   "chef_type": "role",
   "run_list": [ 
-    "recipe[bashrc]", 
     "recipe[apt]", 
     "recipe[build-essential]", 
+    "recipe[kernel-headers]",
     "recipe[cmake]", 
     "recipe[chef-dotdeb]", 
     "recipe[vim]",

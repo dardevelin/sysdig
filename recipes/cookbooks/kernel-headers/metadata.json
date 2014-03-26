@@ -1,0 +1,31 @@
+{
+  "name": "kernel-headers"
+  "description": "Installs packages required for compiling C kernel things"
+  "long_description": "",
+  "maintainer": "nobody",
+  "license": "Apache 2.0",
+  "platforms": {
+    "ubuntu": ">= 0.0.0",
+    "debian": ">= 0.0.0"
+  },
+  "dependencies": {
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "kernel-headers": "Installs packages required for compiling C kernel things"
+  },
+  "version": "0.0.1"
+}

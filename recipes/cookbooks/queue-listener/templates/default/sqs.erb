@@ -1,8 +1,0 @@
-# Sets up the laravel queue listener as a process
-# Author: Juni Samos jsamos@gmail.com
-
-[program:queue_sqs]
-command=/usr/bin/php /var/www/vhosts/api/artisan queue:listen sqs
-stdout_logfile=/tmp/sqs.txt
-directory=/var/www/vhosts/api
-autorestart=true
