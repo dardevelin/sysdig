@@ -10,8 +10,6 @@
     "recipe[build-essential]", 
     "recipe[kernel-headers]",
     "recipe[cmake]", 
-    "recipe[chef-dotdeb]", 
-    "recipe[vim]",
-    "recipe[git]"
+    "recipe[chef-dotdeb]"
   ]
 }
